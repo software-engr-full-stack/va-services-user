@@ -4,6 +4,8 @@ import (
     "context"
     "errors"
 
+    "virtual-assistant/services/user/pkg/models"
+
     "github.com/go-kit/kit/endpoint"
 )
 
@@ -11,12 +13,18 @@ type UserService interface {
     Create(email string) (int, error)
 }
 
-type userService struct{}
+type userService struct {
+    DB *sqlx.DB
+}
 
-func (userService) Create(email string) (int, error) {
+func (userService UserService) Create(email string) (int, error) {
     if email == "" {
         return 0, ErrEmpty
     }
+    user = models.User{
+        Email: email,
+    }
+    user.Insert()
 
     return 1, nil
 }

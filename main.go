@@ -6,11 +6,26 @@ import (
     "log"
     "net/http"
 
+    "virtual-assistant/services/user/pkg/models"
+    "virtual-assistant/services/user/pkg/models/postgres"
+
     httptransport "github.com/go-kit/kit/transport/http"
 )
 
+var db *sqlx.DB
+
+const url = os.Getenv("VA_USERS_URL")
+
 func main() {
-    svc := userService{}
+    db = sqlx.Open("postgres", url)
+    err := db.Ping()
+    if err != nil {
+        panic(err)
+    }
+
+    svc := userService{
+        DB: db,
+    }
 
     createHandler := httptransport.NewServer(
         createEndpoint(svc),
