@@ -7,6 +7,7 @@ import (
     "net/http"
     "os"
     "strings"
+    "time"
 
     httptransport "github.com/go-kit/kit/transport/http"
     "github.com/jmoiron/sqlx"
@@ -49,8 +50,21 @@ func main() {
         encodeResponse,
     )
 
-    http.Handle("/user/create", createHandler)
-    log.Fatal(http.ListenAndServe(":8080", nil))
+    mux := http.NewServeMux()
+    mux.Handle("/user/create", createHandler)
+
+    srv := &http.Server{
+        Addr:         ":8080",
+        ErrorLog:     errorLog,
+        Handler:      mux,
+        IdleTimeout:  time.Minute,
+        ReadTimeout:  5 * time.Second,
+        WriteTimeout: 10 * time.Second,
+    }
+
+    if err = srv.ListenAndServe(); err != nil {
+        errorLog.Fatal(err)
+    }
 }
 
 func decodeCreateRequest(_ context.Context, r *http.Request) (interface{}, error) {
