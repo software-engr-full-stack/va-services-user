@@ -6,9 +6,11 @@ import (
     "log"
     "net/http"
     "os"
+    "strings"
 
     httptransport "github.com/go-kit/kit/transport/http"
     "github.com/jmoiron/sqlx"
+    "github.com/joho/godotenv"
     _ "github.com/lib/pq"
 
     "virtual-assistant/services/user/pkg/models/postgres"
@@ -17,7 +19,15 @@ import (
 func main() {
     errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
-    url := "postgres:///va_users?host=/var/run/postgresql&sslmode=disable"
+    err := godotenv.Load()
+    if err != nil {
+        errorLog.Fatal("error loading .env file")
+    }
+
+    url := strings.TrimSpace(os.Getenv("DATABASE_URL"))
+    if url == "" {
+        errorLog.Fatal("DATABASE_URL env var is blank")
+    }
 
     db, err := sqlx.Open("postgres", url)
     if err != nil {
