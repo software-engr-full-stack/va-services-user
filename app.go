@@ -8,17 +8,26 @@ import (
 )
 
 type UserService interface {
-    Create(email string) (int, error)
+    Create(email string) (int64, error)
 }
 
-type userService struct{}
+type userService struct {
+    db interface {
+        Insert(string) (int64, error)
+        // Get(int64) (*models.User, error)
+    }
+}
 
-func (userService) Create(email string) (int, error) {
+func (user userService) Create(email string) (int64, error) {
     if email == "" {
         return 0, ErrEmpty
     }
+    id, err := user.db.Insert(email)
+    if err != nil {
+        return 0, err
+    }
 
-    return 1, nil
+    return id, nil
 }
 
 // ErrEmpty is returned when input string is empty
@@ -29,7 +38,7 @@ type createRequest struct {
 }
 
 type createResponse struct {
-    ID  int    `json:"id"`
+    ID  int64  `json:"id"`
     Err string `json:"err,omitempty"` // errors don't JSON-marshal, so we use a string
 }
 
