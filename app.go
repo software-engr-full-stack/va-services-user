@@ -5,6 +5,8 @@ import (
     "errors"
 
     "github.com/go-kit/kit/endpoint"
+
+    "github.com/software-engr-full-stack/vaskafka"
 )
 
 type UserService interface {
@@ -23,6 +25,11 @@ func (user userService) Create(email string) (int64, error) {
         return 0, ErrEmpty
     }
     id, err := user.db.Insert(email)
+    if err != nil {
+        return 0, err
+    }
+
+    err = vaskafka.Produce("user-created", email)
     if err != nil {
         return 0, err
     }
